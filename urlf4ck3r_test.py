@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 from collections import defaultdict
 from pwn import *
+import pdb
 
 RED = "\033[91m"
 GREEN = "\033[92m"
@@ -24,9 +25,14 @@ def get_arguments():
 def parse_url(url):
     parsed_url = urlparse(url)
     scheme = parsed_url.scheme
-    hostname = parsed_url.netloc
+    domain = parsed_url.netloc
     path = parsed_url.path
-    return scheme, hostname, path
+    return scheme, domain, path
+
+def is_internal_url(base_url, url):
+    base_domain = urlparse(base_url).netloc
+    url_domain = urlparse(url).netloc
+    return base_domain in url_domain
 
 if __name__ == "__main__":
 
@@ -41,22 +47,23 @@ if __name__ == "__main__":
     visited_urls = set()
     urls_to_visit = [base_url]
 
-    _, hostname, _ = parse_url(base_url)
+    _, domain, _ = parse_url(base_url)
 
     p = log.progress("")
+    print()
+    print(f"[{GREEN}DOMINIO{END_COLOR}]: {domain}")
+    print()
 
     while urls_to_visit:
-        url_to_visit = urls_to_visit.pop(0)
-        visited_urls.add(url_to_visit)
+        url = urls_to_visit.pop(0)
+        if url in visited_urls:
+            continue
+        visited_urls.add(url)
 
-        print()
-        p.status(f"[{GREEN}CHECKING{END_COLOR}]: {url_to_visit}")
+        p.status(f"[{GREEN}CHECKING{END_COLOR}]: {url}")
 
-        response = requests.get(base_url)
+        response = requests.get(url)
         soup = BeautifulSoup(response.content, 'html.parser')
-
-        print(f"[{GREEN}HOSTNAME{END_COLOR}]: {hostname}")
-        print()
 
         for link in soup.find_all("a"):
             href = link.get("href")
@@ -66,8 +73,12 @@ if __name__ == "__main__":
                 if not scheme:
                     full_url = urljoin(base_url, path)
                     all_urls["relative_urls"].add(full_url)
+                    if full_url not in visited_urls:
+                        urls_to_visit.append(full_url)
                 elif any(scheme in href for scheme in test_schemes):
                     all_urls["absolute_urls"].add(href)
+                    if is_internal_url(base_url, href) and href not in visited_urls:
+                        urls_to_visit.append(href)
 
     print(f"[{GREEN}ABSOLUTE URLS{END_COLOR}]:")
     if len(all_urls["absolute_urls"]) == 0:
@@ -84,3 +95,15 @@ if __name__ == "__main__":
     else:
         for url in sorted(all_urls["relative_urls"]):
             print(url)
+
+    print()
+
+    print(f"[{GREEN}VISITED URLS{END_COLOR}]:")
+    for url in sorted(visited_urls):
+        print(url)
+
+    print()
+
+    print(f"[{GREEN}URLS TO VISIT{END_COLOR}]:")
+    for url in sorted(urls_to_visit):
+        print(url)
