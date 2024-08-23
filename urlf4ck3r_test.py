@@ -6,6 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 from collections import defaultdict
+from pwn import *
 
 RED = "\033[91m"
 GREEN = "\033[92m"
@@ -37,35 +38,49 @@ if __name__ == "__main__":
 
     all_urls = defaultdict(set)
     base_url = args.url
+    visited_urls = set()
+    urls_to_visit = [base_url]
 
     _, hostname, _ = parse_url(base_url)
 
-    response = requests.get(base_url)
-    soup = BeautifulSoup(response.content, 'html.parser')
+    p = log.progress("")
 
-    print(f"Hostname: {hostname}")
+    while urls_to_visit:
+        url_to_visit = urls_to_visit.pop(0)
+        visited_urls.add(url_to_visit)
+
+        print()
+        p.status(f"[{GREEN}CHECKING{END_COLOR}]: {url_to_visit}")
+
+        response = requests.get(base_url)
+        soup = BeautifulSoup(response.content, 'html.parser')
+
+        print(f"[{GREEN}HOSTNAME{END_COLOR}]: {hostname}")
+        print()
+
+        for link in soup.find_all("a"):
+            href = link.get("href")
+            scheme, _, path = parse_url(href)
+            test_schemes = ["http", "https"]
+            if href:
+                if not scheme:
+                    full_url = urljoin(base_url, path)
+                    all_urls["relative_urls"].add(full_url)
+                elif any(scheme in href for scheme in test_schemes):
+                    all_urls["absolute_urls"].add(href)
+
+    print(f"[{GREEN}ABSOLUTE URLS{END_COLOR}]:")
+    if len(all_urls["absolute_urls"]) == 0:
+        print(f"[{RED}!{END_COLOR}] No se encontraron URL absolutas")
+    else:
+        for url in sorted(all_urls["absolute_urls"]):
+            print(url)
+    
     print()
 
-    absolute_urls = set()
-    relative_urls = set()
-
-    for link in soup.find_all("a"):
-        href = link.get("href")
-        scheme, _, path = parse_url(href)
-        test_schemes = ["http", "https"]
-        if href:
-            if not scheme:
-                full_url = urljoin(base_url, path)
-                relative_urls.add(full_url)
-                print(f"[RELATIVA] {path} -- {full_url}")
-            elif any(scheme in href for scheme in test_schemes):
-                absolute_urls.add(href)
-                print(f"[ABSOLUTA] {href}")
-
-    print("[ABSOLUTE URLS]:")
-    for url in absolute_urls:
-        print(f"[+] {url}")
-
-    print("[RELATIVE URLS]:")
-    for url in relative_urls:
-        print(f"[+] {url}")
+    print(f"[{GREEN}RELATIVE URLS{END_COLOR}]:")
+    if len(all_urls["absolute_urls"]) == 0:
+        print(f"[{RED}!{END_COLOR}] No se encontraron URL relativas")
+    else:
+        for url in sorted(all_urls["relative_urls"]):
+            print(url)
