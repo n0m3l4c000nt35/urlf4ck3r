@@ -73,23 +73,25 @@ urlf4ck3r -u https://ejemplo.com
 
 URLf4ck3r proporciona una salida detallada y colorida:
 
-- 🟢 Subdomains: Subdominios encontrados durante el escaneo.
-- 🔵 Absolute URLs: URLs que aparecen con su ruta absoluta dentro del código fuente de la URL que se está escaneando.
-- 🟡 Relative URLs: URLs que se obtienen a partir de la ruta relativa a la URL que está siendo escaneada dentro del código fuente que se está escaneando.
-- 🟣 Visited URLs: Lista de URLs que dinámicamente se va formando mientras se analiza la URL principal.
-- 🔴 URLs pendientes de visitar: Lista de URLs que quedaron pendientes de escanear.
+- 🟢 **Subdomains**: Subdominios encontrados durante el escaneo.
+- 🔵 **Absolute URLs**: URLs que aparecen con su ruta absoluta dentro del código fuente de la URL que se está escaneando.
+- 🟡 **Relative URLs**: URLs que se obtienen a partir de la ruta relativa a la URL que está siendo escaneada dentro del código fuente que se está escaneando.
+- 🟣 **Visited URLs**: Lista de URLs que dinámicamente se va formando mientras se analiza la URL principal.
+- 🔴 **URLs pendientes de visitar**: Lista de URLs que quedaron pendientes de escanear.
 
 ## 🤝 Contribuciones
 
 ¡Las contribuciones son bienvenidas! Si tenés ideas para mejorar URLf4ck3r, no dudés en abrir un issue o enviar un pull request.
+Si te salta algún error avisá no seas 💩.
+Peace out! ☮️
 
 ## 📜 Licencia
 
-Este proyecto está bajo la Licencia **SUDAKA**.
+Este proyecto está bajo licencia **VLLC** 🦁.
 
 ## 👨‍💻 Autor
 
-Creado con 🤪 y 💻 por [n0m3l4c000nt35](https://github.com/n0m3l4c000nt35)
+Creado con 🤪 & ❤️ por [n0m3l4c000nt35](https://github.com/n0m3l4c000nt35) 🇦🇷
 
 ---
 
