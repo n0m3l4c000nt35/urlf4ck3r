@@ -96,3 +96,5 @@ Creado con 🤪 & ❤️ por [n0m3l4c000nt35](https://github.com/n0m3l4c000nt35)
 ---
 
 ¿Te gusta **urlf4ck3r**? ¡Deja una ⭐ en el repositorio y compartilo!
+
+¿No te gusta? Borralo y llamá a la gorra 🚓!
