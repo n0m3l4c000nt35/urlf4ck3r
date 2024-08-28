@@ -22,7 +22,7 @@ URLf4ck3r es una herramienta de reconocimiento diseñada para escanear y extraer
 1. Cloná este repositorio:
 
 ```
-git clone https://github.com/tu-usuario/urlf4ck3r.git
+git clone https://github.com/n0m3l4c000nt35/urlf4ck3r.git
 ```
 
 2. Instalá las dependencias:
