@@ -1,6 +1,6 @@
-# 🕸️ URLf4ck3r
+# 🕸️ URLf4ck3r 🕵️‍♂️
 
-## 🕵️‍♂️ Peor escaner del mundo ⚠️ NO LO USES si no lo vas a usar 👍
+## ⚠️ NO LO USES si no lo vas a usar 😵‍💫
 
 URLf4ck3r es una herramienta de reconocimiento diseñada para escanear y extraer URLs del código fuente de sitios web.
 
