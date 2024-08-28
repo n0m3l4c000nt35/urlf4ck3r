@@ -101,6 +101,13 @@ class URLf4ck3r:
                     print(f"[{self.YELLOW}COMMENT FOUND{self.END_COLOR}] '{comment_text}' in {url}")
                     break
 
+    def is_jsfile(self, url, res):
+        if url.lower().endswith(('.js', '.mjs')):
+            return True
+        content_type = res.headers.get('Content-Type', '').lower()
+        if 'javascript' in content_type:
+            return True
+
     def find_javascript_files(self, soup, base_url):
         js_files = set()
         for script in soup.find_all('script', src=True):
@@ -113,7 +120,7 @@ class URLf4ck3r:
     def show_list(self, url_list, err_msg=None):
         print()
         title = " ".join(url_list.split("_")).upper() if "_" in url_list else url_list.upper()
-        print(f"[{self.GREEN}{title}{self.END_COLOR}]:")
+        print(f"[{self.RED}{len(self.all_urls[url_list])}{self.END_COLOR}][{self.GREEN}{title}{self.END_COLOR}]:")
         if len(self.all_urls[url_list]) == 0:
             print(f"[{self.RED}!{self.END_COLOR}] {err_msg}")
         else:
@@ -170,7 +177,7 @@ class URLf4ck3r:
             js_files = self.find_javascript_files(soup, url)
             self.all_urls["javascript_files"].update(js_files)
 
-            self.extract_comments(soup, url)
+            # self.extract_comments(soup, url)
 
             for link in soup.find_all("a"):
                 href = link.get("href")
@@ -181,11 +188,15 @@ class URLf4ck3r:
                         full_url = urljoin(url, path)
                         if full_url not in self.all_urls["relative_urls"]:
                             self.all_urls["relative_urls"].add(full_url)
+                            if self.is_jsfile(url, res):
+                                self.all_urls["javascript_files"]
                         if full_url not in self.all_urls["scanned_urls"] and full_url not in self.urls_to_visit:
                             self.urls_to_visit.append(full_url)
                     elif any(scheme in href for scheme in test_schemes):
                         if href not in self.all_urls["absolute_urls"]:
                             self.all_urls["absolute_urls"].add(href)
+                            if self.is_jsfile(url, res):
+                                self.all_urls["javascript_files"]
                         if self.is_internal_url(self.base_url, href) and href not in self.all_urls["scanned_urls"] and href not in self.urls_to_visit:
                             self.urls_to_visit.append(href)
                         ext = self.extract_subdomain(href)
@@ -251,8 +262,8 @@ class URLf4ck3r:
                 if self.all_urls[category]:
                     self.save_category_to_file(category, f"{base_name}_{filename}.txt")
 
-            comments_output_file = f"{base_name}_comments.txt"
-            self.save_comments_to_file(comments_output_file)
+            # comments_output_file = f"{base_name}_comments.txt"
+            # self.save_comments_to_file(comments_output_file)
 
         print()
 
@@ -264,7 +275,7 @@ class URLf4ck3r:
         elif len(self.urls_to_visit) == 0:
             print(f"[{self.GREEN}+{self.END_COLOR}] Se escanearon todas las URLs posibles")
         else:
-            print(f"[+] Quedaron por visitar {len(self.urls_to_visit)} URLs")
+            print(f"[{self.RED}!{self.END_COLOR}] Quedaron por visitar {len(self.urls_to_visit)} URLs")
             for url in sorted(self.urls_to_visit):
                 print(url)
 
