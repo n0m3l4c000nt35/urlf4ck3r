@@ -74,6 +74,7 @@ class URLf4ck3r:
             url = self.urls_to_scan.pop(0)
             self.scan_url(url)
 
+        print()
         self.show_lists()
         self.save_files()
 
@@ -275,12 +276,14 @@ class URLf4ck3r:
         ]
         for url_list, err_msg in list_to_show:
             title = " ".join(url_list.split("_")).upper() if "_" in url_list else url_list.upper()
-            print(f"\n[{self.RED}{len(self.all_urls[url_list])}{self.END_COLOR}][{self.GREEN}{title}{self.END_COLOR}]:")
             if len(self.all_urls[url_list]) == 0:
                 print(f"[{self.RED}!{self.END_COLOR}] {err_msg}")
             else:
-                for url in sorted(self.all_urls[url_list]):
-                    print(url)
+                print(f"[{self.RED}{len(self.all_urls[url_list])}{self.END_COLOR}][{self.GREEN}{title}{self.END_COLOR}]")
+        if len(self.comments_data) > 0:
+            print(f"[{self.RED}{len(self.comments_data)}{self.END_COLOR}][{self.GREEN}COMMENTS{self.END_COLOR}]")
+
+
 
 
     class Killer:
