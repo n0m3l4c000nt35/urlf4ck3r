@@ -284,8 +284,6 @@ class URLf4ck3r:
             print(f"[{self.RED}{len(self.comments_data)}{self.END_COLOR}][{self.GREEN}COMMENTS{self.END_COLOR}]")
 
 
-
-
     class Killer:
         def __init__(self):
             self.state = False
