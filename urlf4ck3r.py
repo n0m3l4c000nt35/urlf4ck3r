@@ -75,8 +75,13 @@ class URLf4ck3r:
 
     @staticmethod
     def is_subdomain(base_url, url):
-        base_domain = urlparse(base_url).netloc
-        return url.endswith(base_domain) and url != base_domain
+        base_domain = URLf4ck3r.extract_subdomain(base_url)
+        print(f"[BASE] {base_domain}")
+        sub = URLf4ck3r.extract_subdomain(url)
+        print(f"[SUB] {sub}")
+        print(f"[ENDS] {sub.endswith(base_domain)}")
+        print(f"[NOT] {sub != base_domain}")
+        return sub.endswith(base_domain) and sub != base_domain
 
     @staticmethod
     def parse_url(url):
@@ -183,7 +188,7 @@ class URLf4ck3r:
 
             for link in soup.find_all("a"):
                 href = link.get("href")
-                scheme, _, path = self.parse_url(href)
+                scheme, domain, path = self.parse_url(href)
                 test_schemes = ["http", "https"]
                 if href:
                     if not scheme:
@@ -201,9 +206,8 @@ class URLf4ck3r:
                                 self.all_urls["javascript_files"]
                         if self.is_internal_url(self.base_url, href) and href not in self.all_urls["scanned_urls"] and href not in self.urls_to_visit:
                             self.urls_to_visit.append(href)
-                        ext = self.extract_subdomain(href)
-                        if self.is_subdomain(self.base_url, ext) and ext not in self.all_urls["subdomains"]:
-                            subdomain = urlunparse((scheme, ext, "", "", "", ""))
+                        if self.is_subdomain(self.base_url, href) and href not in self.all_urls["subdomains"]:
+                            subdomain = urlunparse((scheme, domain, "", "", "", ""))
                             self.all_urls["subdomains"].add(subdomain)
 
         except requests.exceptions.RequestException as e:
@@ -232,6 +236,7 @@ class URLf4ck3r:
         while self.urls_to_visit and not self.flag.exit():
             url = self.urls_to_visit.pop(0)
             self.scan_url(url)
+            break
 
         print()
 
