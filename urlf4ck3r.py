@@ -76,11 +76,7 @@ class URLf4ck3r:
     @staticmethod
     def is_subdomain(base_url, url):
         base_domain = URLf4ck3r.extract_subdomain(base_url)
-        print(f"[BASE] {base_domain}")
         sub = URLf4ck3r.extract_subdomain(url)
-        print(f"[SUB] {sub}")
-        print(f"[ENDS] {sub.endswith(base_domain)}")
-        print(f"[NOT] {sub != base_domain}")
         return sub.endswith(base_domain) and sub != base_domain
 
     @staticmethod
