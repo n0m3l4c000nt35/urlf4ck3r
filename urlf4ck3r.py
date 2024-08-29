@@ -263,9 +263,9 @@ class URLf4ck3r:
             for category, filename in categories:
                 if self.all_urls[category]:
                     self.save_category_to_file(category, f"{base_name}_{filename}.txt")
-
-            comments_output_file = f"{base_name}_comments.txt"
-            self.save_comments_to_file(comments_output_file)
+            if len(self.all_urls["comments"]) != 0:
+                comments_output_file = f"{base_name}_comments.txt"
+                self.save_comments_to_file(comments_output_file)
 
         print()
 
