@@ -8,6 +8,7 @@ from urllib.parse import urljoin, urlparse, urlunparse
 from collections import defaultdict
 import signal
 import os
+from concurrent.futures import ThreadPoolExecutor
 
 class URLf4ck3r:
 
@@ -74,28 +75,9 @@ class URLf4ck3r:
             self.scan_url(url)
 
         self.show_lists()
+        self.save_files()
 
-        if self.output:
-            base_name = os.path.splitext(self.output)[0]
-            categories = [
-                ("all_urls", "all_urls"),
-                ("absolute_urls", "absolute_urls"),
-                ("relative_urls", "relative_urls"),
-                ("request_error", "request_errors"),
-                ("subdomains", "subdomains"),
-                ("javascript_files", "javascript_files")
-            ]
-
-            for category, filename in categories:
-                if self.all_urls[category]:
-                    self.save_category_to_file(category, f"{base_name}_{filename}.txt")
-            if len(self.all_urls["comments"]) != 0:
-                comments_output_file = f"{base_name}_comments.txt"
-                self.save_comments_to_file(comments_output_file)
-
-        print()
-
-        print(f"[{self.GREEN}URLS TO SCAN{self.END_COLOR}]:")
+        print(f"\n[{self.GREEN}URLS TO SCAN{self.END_COLOR}]:")
         if self.flag.exit():
             print(f"[{self.RED}!{self.END_COLOR}] Quedaron por escanear {self.RED}{len(self.urls_to_scan)}{self.END_COLOR} URLs")
             for url in sorted(self.urls_to_scan):
@@ -103,7 +85,7 @@ class URLf4ck3r:
         elif len(self.urls_to_scan) == 0:
             print(f"[{self.GREEN}+{self.END_COLOR}] Se escanearon todas las URLs posibles")
         else:
-            print(f"[{self.RED}!{self.END_COLOR}] Quedaron por visitar {len(self.urls_to_scan)} URLs")
+            print(f"[{self.RED}!{self.END_COLOR}] Quedaron por escanear {self.RED}{len(self.urls_to_scan)}{self.END_COLOR} URLs")
             for url in sorted(self.urls_to_scan):
                 print(url)
 
@@ -157,10 +139,11 @@ class URLf4ck3r:
                             subdomain = urlunparse((scheme, domain, "", "", "", ""))
                             self.all_urls["subdomains"].add(subdomain)
 
-        except requests.Timeout as e:
+        except requests.Timeout:
             print(f"[{self.RED}REQUEST TIMEOUT{self.END_COLOR}] {url}")
-        except requests.exceptions.RequestException as e:
-            print(f"{self.RED}[REQUEST ERROR]{self.END_COLOR} {url}: {e}")
+            self.all_urls['request_error'].add(url)
+        except requests.exceptions.RequestException:
+            print(f"{self.RED}[REQUEST ERROR]{self.END_COLOR} {url}")
             self.all_urls['request_error'].add(url)
 
 
@@ -174,7 +157,12 @@ class URLf4ck3r:
         return js_files
 
 
-
+    def is_jsfile(self, url, res):
+        if url.lower().endswith(('.js', '.mjs')):
+            return True
+        content_type = res.headers.get('Content-Type', '').lower()
+        if 'javascript' in content_type:
+            return True
 
 
     def extract_subdomain(self, url):
@@ -217,18 +205,37 @@ class URLf4ck3r:
                     break
 
 
-    def is_jsfile(self, url, res):
-        if url.lower().endswith(('.js', '.mjs')):
-            return True
-        content_type = res.headers.get('Content-Type', '').lower()
-        if 'javascript' in content_type:
-            return True
+    def save_files(self):
+        if self.output:
+            base_name = os.path.splitext(self.output)[0]
+            categories = [
+                ("all_urls", "all_urls"),
+                ("absolute_urls", "absolute_urls"),
+                ("relative_urls", "relative_urls"),
+                ("request_error", "request_errors"),
+                ("subdomains", "subdomains"),
+                ("javascript_files", "javascript_files")
+            ]
+            print()
+            for category, filename in categories:
+                if self.all_urls[category]:
+                    self.save_category_to_file(category, f"{base_name}_{filename}.txt")
+            if len(self.all_urls["comments"]) != 0:
+                comments_output_file = f"{base_name}_comments.txt"
+                self.save_comments_to_file(comments_output_file)
 
 
     def save_category_to_file(self, category, file_path):
+        """Guarda la lista en un archivo.
+        Parámetros:
+        -----------
+        category: str
+            Nombre de la categoría correspondiente a una lista de URLs.
+        file_path: str
+            Nombre del archivo con su respectiva extensión.
+        """
         if not self.all_urls[category]:
             return
-
         try:
             with open(file_path, 'w') as file:
                 for url in sorted(self.all_urls[category]):
@@ -239,6 +246,12 @@ class URLf4ck3r:
 
 
     def save_comments_to_file(self, file_path):
+        """Guarda los comentarios sensibles encontrados en el código fuente en un archivo.
+        Parámetro:
+        -------
+        file_path: str
+            Nombre del archivo con su respectiva extensión
+        """
         try:
             with open(file_path, 'w') as file:
                 for url, comments in self.comments_data.items():
@@ -252,6 +265,7 @@ class URLf4ck3r:
 
 
     def show_lists(self):
+        """Muestra la cantidad de URLs y las URLs pertenecientes a cada lista de URLs."""
         list_to_show = [
             ("subdomains", "No se encontraron subdominios"),
             ("absolute_urls", "No se encontraron URL absolutas"),
@@ -267,7 +281,6 @@ class URLf4ck3r:
             else:
                 for url in sorted(self.all_urls[url_list]):
                     print(url)
-        print()
 
 
     class Killer:
