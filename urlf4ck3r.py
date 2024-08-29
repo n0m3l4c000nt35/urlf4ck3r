@@ -184,7 +184,7 @@ class URLf4ck3r:
             js_files = self.find_javascript_files(soup, url)
             self.all_urls["javascript_files"].update(js_files)
 
-            # self.extract_comments(soup, url)
+            self.extract_comments(soup, url)
 
             for link in soup.find_all("a"):
                 href = link.get("href")
@@ -236,7 +236,6 @@ class URLf4ck3r:
         while self.urls_to_visit and not self.flag.exit():
             url = self.urls_to_visit.pop(0)
             self.scan_url(url)
-            break
 
         print()
 
@@ -269,8 +268,8 @@ class URLf4ck3r:
                 if self.all_urls[category]:
                     self.save_category_to_file(category, f"{base_name}_{filename}.txt")
 
-            # comments_output_file = f"{base_name}_comments.txt"
-            # self.save_comments_to_file(comments_output_file)
+            comments_output_file = f"{base_name}_comments.txt"
+            self.save_comments_to_file(comments_output_file)
 
         print()
 
