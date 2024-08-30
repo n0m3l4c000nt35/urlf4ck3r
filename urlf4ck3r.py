@@ -8,7 +8,6 @@ from urllib.parse import urljoin, urlparse, urlunparse
 from collections import defaultdict
 import signal
 import os
-from concurrent.futures import ThreadPoolExecutor
 
 class URLf4ck3r:
 
@@ -81,28 +80,24 @@ class URLf4ck3r:
         print(f"\n[{self.GREEN}URLS TO SCAN{self.END_COLOR}]:")
         if self.flag.exit():
             print(f"[{self.RED}!{self.END_COLOR}] Quedaron por escanear {self.RED}{len(self.urls_to_scan)}{self.END_COLOR} URLs")
-            for url in sorted(self.urls_to_scan):
-                print(url)
         elif len(self.urls_to_scan) == 0:
             print(f"[{self.GREEN}+{self.END_COLOR}] Se escanearon todas las URLs posibles")
         else:
             print(f"[{self.RED}!{self.END_COLOR}] Quedaron por escanear {self.RED}{len(self.urls_to_scan)}{self.END_COLOR} URLs")
-            for url in sorted(self.urls_to_scan):
-                print(url)
 
 
     def get_arguments(self):
         parser = argparse.ArgumentParser(prog="urlf4ck3r", description="Extraer las URL's del código fuente de una web", epilog="Creado por https://github.com/n0m3l4c000nt35")
         parser.add_argument("-u", "--url", type=str, dest="url", help="URL a escanear")
         parser.add_argument("-o", "--output", type=str, dest="output", help="Nombre del archivo de salida")
-        parser.add_argument("-t", "--threads", type=int, dest="threads", help="Hilos a utilizar")
         return parser.parse_args(), parser
 
 
     def scan_url(self, url):
+        if self.flag.exit():
+            return
         if url in self.all_urls["scanned_urls"]:
             return
-
         self.all_urls["scanned_urls"].add(url)
 
         print(f"[{self.GREEN}SCANNING{self.END_COLOR}] {url}")
@@ -123,17 +118,20 @@ class URLf4ck3r:
                 if href:
                     if not scheme:
                         full_url = urljoin(url, path)
+                        if full_url not in self.all_urls["all_urls"]:
+                            self.all_urls["all_urls"].add(full_url)
                         if full_url not in self.all_urls["relative_urls"]:
                             self.all_urls["relative_urls"].add(full_url)
                             if self.is_jsfile(url, res):
-                                self.all_urls["javascript_files"]
+                                self.all_urls["javascript_files"].add(url)
                         if full_url not in self.all_urls["scanned_urls"] and full_url not in self.urls_to_scan:
                             self.urls_to_scan.append(full_url)
                     elif any(scheme in href for scheme in test_schemes):
                         if href not in self.all_urls["absolute_urls"]:
                             self.all_urls["absolute_urls"].add(href)
+                            self.all_urls["all_urls"].add(href)
                             if self.is_jsfile(url, res):
-                                self.all_urls["javascript_files"]
+                                self.all_urls["javascript_files"].add(url)
                         if self.is_internal_url(self.base_url, href) and href not in self.all_urls["scanned_urls"] and href not in self.urls_to_scan:
                             self.urls_to_scan.append(href)
                         if self.is_subdomain(self.base_url, href) and href not in self.all_urls["subdomains"]:
@@ -146,6 +144,8 @@ class URLf4ck3r:
         except requests.exceptions.RequestException:
             print(f"{self.RED}[REQUEST ERROR]{self.END_COLOR} {url}")
             self.all_urls['request_error'].add(url)
+        except Exception as e:
+            print(f"[{self.RED}UNEXPECTED ERROR{self.END_COLOR}] {url}")
 
 
     def find_javascript_files(self, soup, base_url):
@@ -210,21 +210,44 @@ class URLf4ck3r:
         if self.output:
             base_name = os.path.splitext(self.output)[0]
             categories = [
-                ("all_urls", "all_urls"),
-                ("absolute_urls", "absolute_urls"),
-                ("relative_urls", "relative_urls"),
-                ("request_error", "request_errors"),
-                ("subdomains", "subdomains"),
-                ("javascript_files", "javascript_files")
+                "absolute_urls",
+                "relative_urls",
+                "requests_errors",
+                "subdomains",
+                "javascript_files"
             ]
             print()
-            for category, filename in categories:
+            for category in categories:
                 if self.all_urls[category]:
-                    self.save_category_to_file(category, f"{base_name}_{filename}.txt")
+                    self.save_category_to_file(category, f"{base_name}_{category}.txt")
             if len(self.all_urls["comments"]) != 0:
                 comments_output_file = f"{base_name}_comments.txt"
                 self.save_comments_to_file(comments_output_file)
+            if any(list_urls for list_urls in self.all_urls.values()):
+                self.save_all_urls(f"{base_name}_all_urls.txt")
+            if len(self.urls_to_scan) != 0:
+                self.save_urls_to_scan(f"{base_name}_urls_to_scan.txt")
 
+
+    def save_all_urls(self, file_path):
+        try:
+            with open(file_path, "w") as file:
+                for url in sorted(url for urls_list in self.all_urls.values() for url in urls_list):
+                    file.write(url + "\n")
+            print(f"[{self.GREEN}ALL URLS SAVED{self.END_COLOR}] {file_path}")
+        except IOError as e:
+            print(f"[{self.RED}!{self.END_COLOR}] Error al guardar el archivo {e}")
+
+
+    def save_urls_to_scan(self, file_path):
+        try:
+            with open(file_path, "w") as file:
+                for url in sorted(self.urls_to_scan):
+                    file.write(url + "\n")
+            print(f"[{self.GREEN}URLS TO SCAN SAVED{self.END_COLOR}] {file_path}")
+        except IOError as e:
+            print(f"[{self.RED}!{self.END_COLOR}] Error al guardar el archivo {e}")
+                
 
     def save_category_to_file(self, category, file_path):
         """Guarda la lista en un archivo.
@@ -238,10 +261,10 @@ class URLf4ck3r:
         if not self.all_urls[category]:
             return
         try:
-            with open(file_path, 'w') as file:
+            with open(file_path, "w") as file:
                 for url in sorted(self.all_urls[category]):
                     file.write(url + "\n")
-            print(f"[{self.GREEN}CATEGORY {' '.join(category.split('_')).upper()} SAVED{self.END_COLOR}] {file_path}")
+            print(f"[{self.GREEN}{' '.join(category.split('_')).upper()} SAVED{self.END_COLOR}] {file_path}")
         except IOError as e:
             print(f"[{self.RED}!{self.END_COLOR}] Error al guardar el archivo {e}")
 
@@ -254,7 +277,7 @@ class URLf4ck3r:
             Nombre del archivo con su respectiva extensión
         """
         try:
-            with open(file_path, 'w') as file:
+            with open(file_path, "w") as file:
                 for url, comments in self.comments_data.items():
                     file.write(f"URL: {url}\n")
                     for comment in comments:
@@ -274,6 +297,10 @@ class URLf4ck3r:
             ("javascript_files", "No se encontraron archivos JavaScript"),
             ("scanned_urls", None)
         ]
+        if len(self.all_urls) == 0:
+            print(f"[{self.RED}!{self.END_COLOR}] No hay URLs")
+        else:
+            print(f"[{self.RED}{sum(len(list_urls) for list_urls in self.all_urls.values())}{self.END_COLOR}][{self.GREEN}ALL URLS{self.END_COLOR}]")
         for url_list, err_msg in list_to_show:
             title = " ".join(url_list.split("_")).upper() if "_" in url_list else url_list.upper()
             if len(self.all_urls[url_list]) == 0:
