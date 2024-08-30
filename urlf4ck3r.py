@@ -120,8 +120,8 @@ class URLf4ck3r:
             print(f"[{self.RED}UNEXPECTED ERROR{self.END_COLOR}] {url}")
 
 
-    def extract_hrefs(self, source_code, url, res):
-        for link in source_code.find_all("a"):
+    def extract_hrefs(self, soup, url, res):
+        for link in soup.find_all("a"):
                 href = link.get("href")
                 scheme, domain, path = self.parse_url(href)
                 test_schemes = ["http", "https"]
@@ -136,7 +136,7 @@ class URLf4ck3r:
                                 self.all_urls["javascript_files"].add(url)
                         if full_url not in self.all_urls["scanned_urls"] and full_url not in self.urls_to_scan:
                             self.urls_to_scan.append(full_url)
-                    elif any(scheme in href for scheme in test_schemes):
+                    elif scheme in test_schemes:
                         if href not in self.all_urls["absolute_urls"]:
                             self.all_urls["absolute_urls"].add(href)
                             self.all_urls["all_urls"].add(href)
