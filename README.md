@@ -1,14 +1,14 @@
 # 🕸️ URLf4ck3r 🕵️‍♂️
 
-## ⚠️ NO LO USES si no lo vas a usar 😵‍💫
-
 URLf4ck3r es una herramienta de reconocimiento diseñada para escanear y extraer URLs del código fuente de sitios web.
 
 ### 🚀 Características principales
 
 - 🔍 Escaneo recursivo de URLs
 - 🌐 Detección de subdominios
+- ✍️ Detección de palabras sensibles en los comentarios
 - 🔗 Clasificación de URLs absolutas y relativas
+- 💠 Detección de archivos JavaScript
 - 🎨 Salida colorida para una fácil lectura
 - ⏱️ Interrumpible en cualquier momento
 
@@ -54,47 +54,31 @@ chmod +x urlf4ck3r.py
 Si seguiste el paso 4 de la instalación, podés ejecutar el script desde cualquier ubicación simplemente con:
 
 ```
-urlf4ck3r -u <URL>
+urlf4ck3r -u <URL> -o output.txt
 ```
 
 De lo contrario, desde el directorio del script:
 
 ```
-./urlf4ck3r.py -u <URL>
+./urlf4ck3r.py -u <URL> -o output
 ```
 
 Ejemplo:
 
 ```
-urlf4ck3r -u https://ejemplo.com
+urlf4ck3r -u https://ejemplo.com -o output.txt
 ```
-
-## 🖥️ Salida
-
-URLf4ck3r proporciona una salida detallada y colorida:
-
-- 🟢 **Subdomains**: Subdominios encontrados durante el escaneo.
-- 🔵 **Absolute URLs**: URLs que aparecen con su ruta absoluta dentro del código fuente de la URL que se está escaneando.
-- 🟡 **Relative URLs**: URLs que se obtienen a partir de la ruta relativa a la URL que está siendo escaneada dentro del código fuente que se está escaneando.
-- 🟣 **Visited URLs**: Lista de URLs que dinámicamente se va formando mientras se analiza la URL principal.
-- 🔴 **URLs pendientes de visitar**: Lista de URLs que quedaron pendientes de escanear.
 
 ## 🤝 Contribuciones
 
 ¡Las contribuciones son bienvenidas! Si tenés ideas para mejorar URLf4ck3r, no dudés en abrir un issue o enviar un pull request.
+
 Si te salta algún error avisá no seas 💩.
+
 Peace out! ☮️
-
-## 📜 Licencia
-
-Este proyecto está bajo licencia **VLLC** 🦁.
 
 ## 👨‍💻 Autor
 
 Creado con 🤪 & ❤️ por [n0m3l4c000nt35](https://github.com/n0m3l4c000nt35) 🇦🇷
 
----
-
-¿Te gusta **urlf4ck3r**? ¡Deja una ⭐ en el repositorio y compartilo!
-
-¿No te gusta? Borralo y llamá a la gorra 🚓!
+¿Te gusta **urlf4ck3r**? ¡Deja una ⭐ en el repo y compartilo!
