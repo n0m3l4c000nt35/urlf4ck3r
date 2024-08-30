@@ -106,22 +106,12 @@ class URLf4ck3r:
             res = requests.get(url, timeout=5)
             soup = BeautifulSoup(res.content, 'html.parser')
 
-            self.extract_js_files(soup, url)
+            js_files = self.find_javascript_files(soup, url)
+            self.all_urls["javascript_files"].update(js_files)
+
             self.extract_comments(soup, url)
-            self.extract_hrefs(soup)
 
-        except requests.Timeout:
-            print(f"[{self.RED}REQUEST TIMEOUT{self.END_COLOR}] {url}")
-            self.all_urls['request_error'].add(url)
-        except requests.exceptions.RequestException:
-            print(f"{self.RED}[REQUEST ERROR]{self.END_COLOR} {url}")
-            self.all_urls['request_error'].add(url)
-        except Exception as e:
-            print(f"[{self.RED}UNEXPECTED ERROR{self.END_COLOR}] {url}")
-
-
-    def extract_hrefs(self, source_code):
-        for link in source_code.find_all("a"):
+            for link in soup.find_all("a"):
                 href = link.get("href")
                 scheme, domain, path = self.parse_url(href)
                 test_schemes = ["http", "https"]
@@ -148,15 +138,24 @@ class URLf4ck3r:
                             subdomain = urlunparse((scheme, domain, "", "", "", ""))
                             self.all_urls["subdomains"].add(subdomain)
 
+        except requests.Timeout:
+            print(f"[{self.RED}REQUEST TIMEOUT{self.END_COLOR}] {url}")
+            self.all_urls['request_error'].add(url)
+        except requests.exceptions.RequestException:
+            print(f"{self.RED}[REQUEST ERROR]{self.END_COLOR} {url}")
+            self.all_urls['request_error'].add(url)
+        except Exception as e:
+            print(f"[{self.RED}UNEXPECTED ERROR{self.END_COLOR}] {url}")
 
-    def extract_js_files(self, soup, base_url):
+
+    def find_javascript_files(self, soup, base_url):
         js_files = set()
         for script in soup.find_all('script', src=True):
             js_url = script['src']
             if not urlparse(js_url).netloc:
                 js_url = urljoin(base_url, js_url)
             js_files.add(js_url)
-        self.all_urls["javascript_files"].update(js_files)
+        return js_files
 
 
     def is_jsfile(self, url, res):
@@ -241,12 +240,6 @@ class URLf4ck3r:
 
 
     def save_urls_to_scan(self, file_path):
-        """Guarda la lista que contiene las URLs que quedaron sin escanear
-        Parámetro:
-        ----------
-        file_path: str
-            Nombre del archivo con su respectiva extensión.
-        """
         try:
             with open(file_path, "w") as file:
                 for url in sorted(self.urls_to_scan):
