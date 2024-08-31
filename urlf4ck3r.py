@@ -124,7 +124,7 @@ class URLf4ck3r:
         for link in soup.find_all("a"):
                 href = link.get("href")
                 scheme, domain, path = self.parse_url(href)
-                test_schemes = ["http", "https"]
+                schemes = ["http", "https"]
                 if href:
                     if not scheme:
                         full_url = urljoin(url, path)
@@ -136,7 +136,7 @@ class URLf4ck3r:
                                 self.all_urls["javascript_files"].add(url)
                         if full_url not in self.all_urls["scanned_urls"] and full_url not in self.urls_to_scan:
                             self.urls_to_scan.append(full_url)
-                    elif scheme in test_schemes:
+                    elif scheme in schemes:
                         if href not in self.all_urls["absolute_urls"]:
                             self.all_urls["absolute_urls"].add(href)
                             self.all_urls["all_urls"].add(href)
